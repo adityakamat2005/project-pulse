@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar" th:fragment="topbar(pageTitle)">
+  <div class="d-flex align-center gap-8">
+    <button id="sidebarToggle" class="btn btn-outline btn-icon d-none" style="display:none">
+      <i class="bi bi-list"></i>
+    </button>
+    <span class="fw-700 fs-15" th:text="${pageTitle}">Page</span>
+  </div>
+  <div class="d-flex align-center gap-8">
+    <a th:href="@{/calendar}" class="btn btn-outline btn-sm">
+      <i class="bi bi-calendar3"></i> Calendar
+    </a>
+    <a th:href="@{/profile}" class="btn btn-outline btn-sm">
+      <i class="bi bi-person-circle"></i>
+      <span sec:authentication="name">User</span>
+    </a>
+  </div>
+</header>
+
+<!-- ── Flash Alerts ── -->
+<div th:fragment="alerts">
+  <div th:if="${successMsg}" class="alert alert-success fade-in" data-auto-dismiss>
+    <i class="bi bi-check-circle-fill"></i>
+    <span th:text="${successMsg}"></span>
+  </div>
+  <div th:if="${errorMsg}" class="alert alert-error fade-in" data-auto-dismiss>
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span th:text="${errorMsg}"></span>
+  </div>
+  <div th:if="${infoMsg}" class="alert alert-info fade-in" data-auto-dismiss>
+    <i class="bi bi-info-circle-fill"></i>
+    <span th:text="${infoMsg}"></span>
+  </div>
+</div>
+
+</body>
+</html>

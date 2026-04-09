@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="${task.title} + ' — ProjectPulse'">Task</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/topbar :: topbar('Task Detail')}"></div>
+    <div class="page-body">
+      <div th:replace="~{fragments/topbar :: alerts}"></div>
+
+      <div class="page-header">
+        <div>
+          <a th:href="@{/tasks(projectId=${task.project.id})}" class="text-muted fs-13">
+            <i class="bi bi-arrow-left"></i> Back to Tasks
+          </a>
+          <h1 class="page-title mt-8" th:text="${task.title}"></h1>
+          <div class="d-flex align-center gap-8 mt-4">
+            <span class="badge" th:classappend="'badge-' + ${task.status.name().toLowerCase().replace('_','-')}" th:text="${task.status}"></span>
+            <span class="badge" th:classappend="'badge-' + ${task.priority.name().toLowerCase()}" th:text="${task.priority}"></span>
+            <span th:if="${task.pinned}" class="badge badge-submitted"><i class="bi bi-pin-fill"></i> Pinned</span>
+            <span th:if="${task.overdue}" style="color:var(--danger);font-size:12px;font-weight:700;">
+              <i class="bi bi-exclamation-circle"></i> OVERDUE
+            </span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <!-- Edit (leader/admin) -->
+          <a sec:authorize="hasAnyRole('ADMIN','LEADER')"
+             th:href="@{/tasks/{id}/edit(id=${task.id})}" class="btn btn-outline">
+            <i class="bi bi-pencil"></i> Edit
+          </a>
+          <!-- Member: Submit File -->
+          <a sec:authorize="hasRole('MEMBER')"
+             th:if="${task.assignedTo?.id == currentUser.id and (task.status.name() == 'TODO' or task.status.name() == 'IN_PROGRESS' or task.status.name() == 'REJECTED')}"
+             th:href="@{/submissions/upload/{id}(id=${task.id})}" class="btn btn-primary">
+            <i class="bi bi-upload"></i> Submit File
+          </a>
+          <!-- Leader: Approve/Reject -->
+          <div sec:authorize="hasAnyRole('ADMIN','LEADER')"
+               th:if="${task.status.name() == 'SUBMITTED'}" class="d-flex gap-8">
+            <form th:action="@{/tasks/{id}/approve(id=${task.id})}" method="post">
+              <button class="btn btn-success"><i class="bi bi-check-lg"></i> Approve</button>
+            </form>
+            <form th:action="@{/tasks/{id}/reject(id=${task.id})}" method="post">
+              <button class="btn btn-danger"><i class="bi bi-x-lg"></i> Reject</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+        <!-- Left -->
+        <div>
+          <div class="card mb-24">
+            <div class="card-header"><span class="card-title">Description</span></div>
+            <div class="card-body">
+              <p th:text="${task.description ?: 'No description provided.'}" style="color:var(--text-muted);line-height:1.7;"></p>
+            </div>
+          </div>
+
+          <!-- Status Update (Member) -->
+          <div class="card mb-24" sec:authorize="hasRole('MEMBER')"
+               th:if="${task.assignedTo?.id == currentUser.id}">
+            <div class="card-header"><span class="card-title">Update Status</span></div>
+            <div class="card-body">
+              <form th:action="@{/tasks/{id}/status(id=${task.id})}" method="post" class="d-flex gap-8 align-center">
+                <select name="status" class="form-select">
+                  <option th:each="s : ${taskStatuses}"
+                          th:value="${s.name()}" th:text="${s}"
+                          th:selected="${s == task.status}"
+                          th:disabled="${s.name() == 'APPROVED' or s.name() == 'TODO'}"></option>
+                </select>
+                <button type="submit" class="btn btn-primary">Update</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Submissions History -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Submission History</span>
+              <a th:href="@{/submissions/task/{id}(id=${task.id})}" class="btn btn-outline btn-sm">View All</a>
+            </div>
+            <div class="card-body">
+              <div th:if="${task.submissions.isEmpty()}" class="text-muted fs-13">No submissions yet.</div>
+              <div th:each="sub : ${task.submissions}" style="padding:12px 0;border-bottom:1px solid var(--border);">
+                <div class="d-flex justify-between align-center">
+                  <div>
+                    <div class="fw-600 fs-13" th:text="${sub.originalFileName}"></div>
+                    <div class="text-muted fs-12">
+                      by <span th:text="${sub.submittedBy.fullName}"></span> ·
+                      <span th:text="${#temporals.format(sub.submittedAt,'dd MMM yyyy HH:mm')}"></span>
+                    </div>
+                    <div class="text-muted fs-12" th:if="${sub.reviewNotes}">
+                      Review note: <em th:text="${sub.reviewNotes}"></em>
+                    </div>
+                  </div>
+                  <div class="d-flex align-center gap-8">
+                    <span class="badge"
+                          th:classappend="${sub.status.name() == 'APPROVED'} ? 'badge-approved' : (${sub.status.name() == 'REJECTED'} ? 'badge-rejected' : 'badge-submitted')"
+                          th:text="${sub.status}"></span>
+                    <a th:href="@{/submissions/download/{id}(id=${sub.id})}" class="btn btn-outline btn-sm">
+                      <i class="bi bi-download"></i>
+                    </a>
+                    <a sec:authorize="hasAnyRole('ADMIN','LEADER')"
+                       th:href="@{/submissions/review/{id}(id=${sub.id})}" class="btn btn-primary btn-sm"
+                       th:if="${sub.status.name() == 'PENDING'}">
+                      Review
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right -->
+        <div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Task Info</span></div>
+            <div class="card-body" style="display:grid;gap:14px;">
+              <div>
+                <div class="text-muted fs-12 mb-4">Assigned To</div>
+                <div class="fw-600" th:text="${task.assignedTo?.fullName ?: 'Unassigned'}"></div>
+              </div>
+              <div>
+                <div class="text-muted fs-12 mb-4">Project</div>
+                <div class="fw-600">
+                  <a th:href="@{/projects/{id}(id=${task.project.id})}" th:text="${task.project.title}"></a>
+                </div>
+              </div>
+              <div>
+                <div class="text-muted fs-12 mb-4">Deadline</div>
+                <div class="fw-600" th:text="${#temporals.format(task.deadline,'dd MMMM yyyy')}"></div>
+              </div>
+              <div>
+                <div class="text-muted fs-12 mb-4">Created By</div>
+                <div class="fw-600" th:text="${task.createdBy.fullName}"></div>
+              </div>
+              <div>
+                <div class="text-muted fs-12 mb-4">Created At</div>
+                <div class="fw-600" th:text="${#temporals.format(task.createdAt,'dd MMM yyyy')}"></div>
+              </div>
+              <div>
+                <div class="text-muted fs-12 mb-4">Pinned</div>
+                <div class="fw-600" th:text="${task.pinned} ? 'Yes ⭐' : 'No'"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

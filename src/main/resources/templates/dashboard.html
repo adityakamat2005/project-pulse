@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dashboard — ProjectPulse</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+  <div class="main-content">
+    <div th:replace="~{fragments/topbar :: topbar('Dashboard')}"></div>
+
+    <div class="page-body">
+      <div th:replace="~{fragments/topbar :: alerts}"></div>
+
+      <!-- Welcome Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            Good day, <span th:text="${currentUser.fullName.split(' ')[0]}">User</span> 👋
+          </h1>
+          <p class="page-subtitle">Here's what's happening with your projects today.</p>
+        </div>
+        <div class="page-actions">
+          <a th:href="@{/projects}" class="btn btn-outline"><i class="bi bi-folder2-open"></i> Projects</a>
+          <a sec:authorize="hasAnyRole('ADMIN','LEADER')"
+             th:href="@{/projects/new}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Project
+          </a>
+        </div>
+      </div>
+
+      <!-- ── ADMIN STATS ── -->
+      <div sec:authorize="hasRole('ADMIN')">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px;">
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-people-fill"></i></div>
+            <div><div class="stat-value" th:text="${totalUsers}">0</div><div class="stat-label">Total Users</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-folder2-open"></i></div>
+            <div><div class="stat-value" th:text="${totalProjects}">0</div><div class="stat-label">Total Projects</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-list-task"></i></div>
+            <div><div class="stat-value" th:text="${totalTasks}">0</div><div class="stat-label">Total Tasks</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check2-all"></i></div>
+            <div><div class="stat-value" th:text="${completedTasks}">0</div><div class="stat-label">Completed Tasks</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
+            <div><div class="stat-value" th:text="${pendingApprovals}">0</div><div class="stat-label">Pending Approvals</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-activity"></i></div>
+            <div><div class="stat-value" th:text="${activeProjects}">0</div><div class="stat-label">Active Projects</div></div>
+          </div>
+        </div>
+
+        <!-- Recent Projects Table -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Projects</span>
+            <a th:href="@{/projects}" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div th:if="${recentProjects.isEmpty()}" class="empty-state">
+              <i class="bi bi-folder2-open"></i>
+              <h3>No projects yet</h3>
+              <p>Create your first project to get started.</p>
+              <a th:href="@{/projects/new}" class="btn btn-primary">New Project</a>
+            </div>
+            <div class="table-wrapper" th:unless="${recentProjects.isEmpty()}">
+              <table class="pp-table">
+                <thead><tr>
+                  <th>Project</th><th>Leader</th><th>Status</th><th>Progress</th><th>Deadline</th>
+                </tr></thead>
+                <tbody>
+                <tr th:each="p : ${recentProjects}">
+                  <td><a th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.title}" class="fw-600"></a></td>
+                  <td th:text="${p.leader?.fullName ?: 'Unassigned'}"></td>
+                  <td><span class="badge" th:classappend="'badge-' + ${p.status.name().toLowerCase().replace('_','-')}"
+                            th:text="${p.status}"></span></td>
+                  <td style="width:140px;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill"
+                           th:style="'width:' + ${p.progressPercentage} + '%'"
+                           th:classappend="${p.progressPercentage == 100} ? 'green' : ''"></div>
+                    </div>
+                    <small class="text-muted" th:text="${p.progressPercentage} + '%'"></small>
+                  </td>
+                  <td th:text="${#temporals.format(p.deadline,'dd MMM yyyy')}"></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LEADER STATS ── -->
+      <div sec:authorize="hasRole('LEADER') and !hasRole('ADMIN')">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-folder2-open"></i></div>
+            <div><div class="stat-value" th:text="${totalProjects}">0</div><div class="stat-label">My Projects</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-list-task"></i></div>
+            <div><div class="stat-value" th:text="${totalTasks}">0</div><div class="stat-label">Total Tasks</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check2-all"></i></div>
+            <div><div class="stat-value" th:text="${completedTasks}">0</div><div class="stat-label">Completed</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-inbox-fill"></i></div>
+            <div><div class="stat-value" th:text="${pendingApprovals}">0</div><div class="stat-label">Pending Reviews</div></div>
+          </div>
+        </div>
+
+        <!-- Pending Submissions -->
+        <div class="card" th:if="${pendingApprovals > 0}">
+          <div class="card-header">
+            <span class="card-title"><i class="bi bi-inbox-fill text-warning"></i> Pending Submissions</span>
+            <a th:href="@{/submissions}" class="btn btn-warning btn-sm">Review All</a>
+          </div>
+          <div class="card-body">
+            <div th:each="task : ${pendingSubmissionTasks}" class="task-item">
+              <div class="flex-1">
+                <div class="task-title" th:text="${task.title}"></div>
+                <div class="task-meta">
+                  <span><i class="bi bi-folder2"></i> <span th:text="${task.project.title}"></span></span>
+                  <span><i class="bi bi-person"></i> <span th:text="${task.assignedTo?.fullName}"></span></span>
+                </div>
+              </div>
+              <a th:href="@{/submissions/task/{id}(id=${task.id})}" class="btn btn-primary btn-sm">Review</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Projects -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <span class="card-title">My Projects</span>
+            <a th:href="@{/projects/new}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New</a>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div th:if="${projects.isEmpty()}" class="empty-state">
+              <i class="bi bi-folder2-open"></i><h3>No projects yet</h3>
+            </div>
+            <div class="table-wrapper" th:unless="${projects.isEmpty()}">
+              <table class="pp-table">
+                <thead><tr><th>Project</th><th>Members</th><th>Status</th><th>Progress</th><th>Deadline</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${projects}">
+                  <td><a th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.title}" class="fw-600"></a></td>
+                  <td th:text="${p.members.size()} + ' members'"></td>
+                  <td><span class="badge" th:classappend="'badge-' + ${p.status.name().toLowerCase().replace('_','-')}"
+                            th:text="${p.status}"></span></td>
+                  <td style="width:120px;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill" th:style="'width:' + ${p.progressPercentage} + '%'"></div>
+                    </div>
+                    <small th:text="${p.progressPercentage} + '%'" class="text-muted"></small>
+                  </td>
+                  <td th:text="${#temporals.format(p.deadline,'dd MMM yyyy')}"></td>
+                  <td><a th:href="@{/tasks(projectId=${p.id})}" class="btn btn-outline btn-sm">Tasks</a></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MEMBER STATS ── -->
+      <div sec:authorize="hasRole('MEMBER') and !hasRole('LEADER') and !hasRole('ADMIN')">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-list-task"></i></div>
+            <div><div class="stat-value" th:text="${totalMyTasks}">0</div><div class="stat-label">My Active Tasks</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-arrow-repeat"></i></div>
+            <div><div class="stat-value" th:text="${inProgressCount}">0</div><div class="stat-label">In Progress</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-upload"></i></div>
+            <div><div class="stat-value" th:text="${submittedCount}">0</div><div class="stat-label">Submitted</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-folder2-open"></i></div>
+            <div><div class="stat-value" th:text="${projects.size()}">0</div><div class="stat-label">Projects</div></div>
+          </div>
+        </div>
+
+        <!-- My Active Tasks -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">My Active Tasks</span>
+            <a th:href="@{/projects}" class="btn btn-outline btn-sm">View Projects</a>
+          </div>
+          <div class="card-body">
+            <div th:if="${myTasks.isEmpty()}" class="empty-state">
+              <i class="bi bi-check2-circle"></i>
+              <h3>All clear!</h3>
+              <p>No active tasks assigned to you.</p>
+            </div>
+            <div th:each="task : ${myTasks}" class="task-item"
+                 th:classappend="${task.pinned} ? 'pinned' : '' + ' ' + (${task.overdue} ? 'overdue' : '')">
+              <div>
+                <i class="bi bi-pin-fill task-pin-icon" th:if="${task.pinned}"></i>
+                <div class="task-title"><a th:href="@{/tasks/{id}(id=${task.id})}" th:text="${task.title}"></a></div>
+                <div class="task-meta">
+                  <span><i class="bi bi-folder2"></i> <span th:text="${task.project.title}"></span></span>
+                  <span><i class="bi bi-calendar"></i> <span th:text="${#temporals.format(task.deadline,'dd MMM yyyy')}"></span></span>
+                  <span th:if="${task.overdue}" style="color:var(--danger);"><i class="bi bi-exclamation-circle"></i> Overdue</span>
+                </div>
+              </div>
+              <div class="d-flex align-center gap-8" style="margin-left:auto;">
+                <span class="badge" th:classappend="'badge-' + ${task.status.name().toLowerCase().replace('_','-')}"
+                      th:text="${task.status}"></span>
+                <span class="badge" th:classappend="'badge-' + ${task.priority.name().toLowerCase()}"
+                      th:text="${task.priority}"></span>
+                <a th:href="@{/tasks/{id}(id=${task.id})}" class="btn btn-outline btn-sm">View</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UPCOMING DEADLINES (all roles) ── -->
+      <div class="card mt-24" th:if="${!upcomingTasks.isEmpty()}">
+        <div class="card-header">
+          <span class="card-title"><i class="bi bi-alarm text-danger"></i> Upcoming Deadlines (7 days)</span>
+          <a th:href="@{/calendar}" class="btn btn-outline btn-sm">Calendar</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="pp-table">
+            <thead><tr><th>Task</th><th>Project</th><th>Priority</th><th>Deadline</th><th>Status</th></tr></thead>
+            <tbody>
+            <tr th:each="task : ${upcomingTasks}">
+              <td><a th:href="@{/tasks/{id}(id=${task.id})}" th:text="${task.title}" class="fw-600"></a></td>
+              <td th:text="${task.project.title}"></td>
+              <td><span class="badge" th:classappend="'badge-' + ${task.priority.name().toLowerCase()}"
+                        th:text="${task.priority}"></span></td>
+              <td th:text="${#temporals.format(task.deadline,'dd MMM yyyy')}"></td>
+              <td><span class="badge" th:classappend="'badge-' + ${task.status.name().toLowerCase().replace('_','-')}"
+                        th:text="${task.status}"></span></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- page-body -->
+  </div><!-- main-content -->
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

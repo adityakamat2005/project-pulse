@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<aside class="sidebar" th:fragment="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-logo">P</div>
+    <div>
+      <div class="brand-name">ProjectPulse</div>
+      <div class="brand-tagline">Team Management</div>
+    </div>
+  </div>
+
+  <!-- Main Nav -->
+  <div class="sidebar-section-label">Main</div>
+  <ul class="sidebar-nav">
+    <li><a th:href="@{/dashboard}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
+    <li><a th:href="@{/projects}"><i class="bi bi-folder2-open"></i> Projects</a></li>
+    <li><a th:href="@{/calendar}"><i class="bi bi-calendar3"></i> Calendar</a></li>
+  </ul>
+
+  <!-- Work -->
+  <div class="sidebar-section-label">Work</div>
+  <ul class="sidebar-nav">
+    <li sec:authorize="hasAnyRole('LEADER','ADMIN')">
+      <a th:href="@{/submissions}">
+        <i class="bi bi-inbox-fill"></i> Submissions
+        <span class="sidebar-badge"
+              th:if="${pendingCount != null and pendingCount > 0}"
+              th:text="${pendingCount}"></span>
+      </a>
+    </li>
+    <li sec:authorize="hasRole('MEMBER')">
+      <a th:href="@{/dashboard}"><i class="bi bi-check2-square"></i> My Tasks</a>
+    </li>
+  </ul>
+
+  <!-- Admin -->
+  <div class="sidebar-section-label" sec:authorize="hasRole('ADMIN')">Admin</div>
+  <ul class="sidebar-nav" sec:authorize="hasRole('ADMIN')">
+    <li><a th:href="@{/admin}"><i class="bi bi-speedometer2"></i> Admin Panel</a></li>
+    <li><a th:href="@{/admin/users}"><i class="bi bi-people-fill"></i> Users</a></li>
+  </ul>
+
+  <!-- Footer: only render if currentUser is available -->
+  <div class="sidebar-footer" th:if="${currentUser != null}">
+    <div class="sidebar-user">
+      <div class="avatar"
+           th:text="${#strings.substring(currentUser.fullName, 0, 1)}">U</div>
+      <div class="user-info">
+        <div class="name" th:text="${currentUser.fullName}">User</div>
+        <div class="role"
+             th:text="${currentUser.primaryRole.replace('ROLE_','')}">MEMBER</div>
+      </div>
+    </div>
+    <ul class="sidebar-nav" style="margin-top:6px;">
+      <li><a th:href="@{/profile}"><i class="bi bi-person-gear"></i> Profile</a></li>
+      <li>
+        <a th:href="@{/auth/logout}"
+           onclick="return confirm('Log out of ProjectPulse?')">
+          <i class="bi bi-box-arrow-left"></i> Logout
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>
+</body>
+</html>
