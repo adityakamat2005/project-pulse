@@ -1,0 +1,25 @@
+# Maven build output
+target/
+*.class
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Uploaded files (don't push user uploads)
+uploads/
+
+# Environment / secrets
+application-prod.properties
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
