@@ -22,8 +22,8 @@ public class FileStorageService {
 
     @PostConstruct
     public void init() {
-        rootLocation = Paths.get(uploadDir).toAbsolutePath();
         try {
+            rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
             Files.createDirectories(rootLocation);
             log.info("📁 Upload directory ready: {}", rootLocation);
         } catch (IOException e) {
@@ -31,11 +31,8 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Store a file and return its stored file name (UUID-based).
-     */
     public String store(MultipartFile file) {
-        if (file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             throw new FileStorageException("Cannot store empty file");
         }
 
@@ -44,29 +41,27 @@ public class FileStorageService {
         String storedFilename = UUID.randomUUID().toString() + "." + extension;
 
         try {
-            Path destination = rootLocation.resolve(storedFilename).normalize();
-            // Security: ensure destination is within upload root
+            // Resolve destination and normalize — toAbsolutePath() ensures Windows paths work correctly
+            Path destination = rootLocation.resolve(storedFilename).toAbsolutePath().normalize();
+
+            // Security check: destination must be inside rootLocation
             if (!destination.startsWith(rootLocation)) {
-                throw new FileStorageException("Cannot store file outside upload directory");
+                throw new FileStorageException("Cannot store file outside upload directory: " + storedFilename);
             }
+
             Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
             log.info("📎 File stored: {}", storedFilename);
             return storedFilename;
+
         } catch (IOException e) {
             throw new FileStorageException("Failed to store file: " + originalFilename, e);
         }
     }
 
-    /**
-     * Load a file as a Path for streaming/download.
-     */
     public Path load(String filename) {
         return rootLocation.resolve(filename).normalize();
     }
 
-    /**
-     * Delete a stored file by name.
-     */
     public void delete(String filename) {
         try {
             Path filePath = rootLocation.resolve(filename).normalize();
@@ -77,9 +72,6 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Get public URL path for a stored file.
-     */
     public String getFileUrl(String storedFilename) {
         return "/uploads/" + storedFilename;
     }

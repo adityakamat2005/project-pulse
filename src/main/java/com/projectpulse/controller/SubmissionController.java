@@ -3,6 +3,7 @@ package com.projectpulse.controller;
 import com.projectpulse.entity.Task;
 import com.projectpulse.entity.TaskSubmission;
 import com.projectpulse.entity.User;
+import com.projectpulse.service.FileStorageService;
 import com.projectpulse.service.SubmissionService;
 import com.projectpulse.service.TaskService;
 import com.projectpulse.util.SecurityUtils;
@@ -29,6 +30,7 @@ public class SubmissionController {
     private final SubmissionService submissionService;
     private final TaskService taskService;
     private final SecurityUtils securityUtils;
+    private final FileStorageService fileStorageService;
 
     // ── All pending submissions for leader ──────────────────────────────────
     @GetMapping
@@ -125,19 +127,20 @@ public class SubmissionController {
         TaskSubmission submission = submissionService.findById(submissionId);
 
         try {
-            Path filePath = Path.of(submission.getFilePath().replace("/uploads/", ""))
-                .toAbsolutePath();
+            // Use FileStorageService to resolve path safely
+            Path filePath = fileStorageService.load(submission.getFileName());
             Resource resource = new UrlResource(filePath.toUri());
 
-            if (!resource.exists()) {
+            if (!resource.exists() || !resource.isReadable()) {
                 return ResponseEntity.notFound().build();
             }
 
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + submission.getOriginalFileName() + "\"")
-                .header(HttpHeaders.CONTENT_TYPE, submission.getFileType())
-                .body(resource);
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + submission.getOriginalFileName() + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, submission.getFileType())
+                    .body(resource);
+
         } catch (MalformedURLException e) {
             return ResponseEntity.badRequest().build();
         }
