@@ -1,4 +1,4 @@
-````markdown
+
 # 🚀 ProjectPulse
 
 > A full-stack SaaS-style Project Management System with role-based workflows, real-time chat, and file submission approval — built with Java Spring Boot.
@@ -44,8 +44,6 @@ ProjectPulse is a production-grade, multi-role project management web applicatio
 ---
 
 ## 🏗️ Architecture
-
-````
 ┌─────────────────────────────────────────────────────────────────┐
 │                         BROWSER (Client)                        │
 │   Thymeleaf HTML + CSS (app.css) + JS (app.js, chat.js)        │
@@ -99,7 +97,7 @@ ProjectPulse is a production-grade, multi-role project management web applicatio
                                 │
                            ./uploads/
                     (UUID-named files on disk)
-````
+
 
 **Request Flow — Step by Step:**
 
@@ -295,7 +293,6 @@ A demo project **"IoT-Based Areca Nut Monitoring System"** with 5 tasks is also 
 
 ## 🗂️ Project Structure
 
-````
 projectpulse/
 ├── src/
 │   ├── main/
