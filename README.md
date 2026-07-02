@@ -331,7 +331,6 @@ A demo project **"IoT-Based Areca Nut Monitoring System"** with 5 tasks is also 
 
 ## 🗂️ Project Structure
 
-```
 projectpulse/
 ├── src/
 │   ├── main/
@@ -399,4 +398,85 @@ projectpulse/
 │   │       │   ├── calendar/
 │   │       │   │   └── view.html               # 7-column monthly grid with task dots
 │   │       │   ├── chat/
-│   │       │   │   └── room.html  
+│   │       │   │   └── room.html               # WebSocket chat with data-* attribute pattern
+│   │       │   ├── error/
+│   │       │   │   └── error.html              # Branded 403/404/500 error page
+│   │       │   ├── fragments/
+│   │       │   │   ├── sidebar.html            # th:fragment="sidebar" — nav + user info
+│   │       │   │   └── topbar.html             # th:fragment="topbar" + th:fragment="alerts"
+│   │       │   ├── projects/
+│   │       │   │   ├── detail.html             # Project overview, progress bar, task preview
+│   │       │   │   ├── form.html               # Create/edit form with multi-select members
+│   │       │   │   └── list.html               # Card grid of accessible projects
+│   │       │   ├── shared/
+│   │       │   │   └── profile.html            # Edit profile + change password tabs
+│   │       │   ├── submissions/
+│   │       │   │   ├── list.html               # Pending submissions table for leader
+│   │       │   │   ├── review.html             # Side-by-side file info + approve/reject
+│   │       │   │   ├── task-submissions.html   # All submissions history for one task
+│   │       │   │   └── upload.html             # Drag-and-drop style file upload form
+│   │       │   ├── tasks/
+│   │       │   │   ├── detail.html             # Task info + status update + submission history
+│   │       │   │   ├── form.html               # Create/edit with priority, assignee, pin
+│   │       │   │   └── list.html               # Filtered task list with filter bar
+│   │       │   └── dashboard.html              # Role-conditional dashboard (Admin/Leader/Member)
+│   │       ├── static/
+│   │       │   ├── css/
+│   │       │   │   └── app.css                 # Full custom design system (CSS variables, components)
+│   │       │   └── js/
+│   │       │       ├── app.js                  # Alerts, confirm dialogs, sidebar toggle, file preview
+│   │       │       └── chat.js                 # SockJS connect, STOMP subscribe, DOM message append
+│   │       └── application.properties
+│   └── test/
+│       └── java/com/projectpulse/
+│           └── ProjectPulseApplicationTests.java
+├── uploads/                                    # Runtime file storage (git-ignored)
+├── .gitignore
+├── pom.xml
+└── README.md
+
+
+---
+
+## 📌 Roadmap
+
+- [ ] **REST API Layer** — Expose `@RestController` endpoints returning JSON alongside the existing MVC controllers, enabling mobile or React frontends to consume the same backend
+- [ ] **JWT Authentication** — Replace session-based auth with stateless JWT tokens to support the REST API and mobile clients
+- [ ] **Email Notifications** — Send email alerts via Spring Mail when a task is assigned, a submission is reviewed, or a project deadline is approaching
+- [ ] **Pagination & Search** — Add `Pageable` support to project and task listings, and a full-text search bar across tasks and projects
+
+---
+
+## 👤 Author
+
+**Aditya Kamat**
+- GitHub: [@adityakamat2005](https://github.com/adityakamat2005)
+- LinkedIn: [linkedin.com/in/adityakamat2005](https://linkedin.com/in/adityakamat2005)
+- Portfolio: [adityakamat2005.github.io](https://adityakamat2005.github.io)
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+
+MIT License
+
+Copyright (c) 2025 Aditya Kamat
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+```
+```
