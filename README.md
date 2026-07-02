@@ -1,4 +1,4 @@
-```markdown
+
 # 🚀 ProjectPulse
 
 > A full-stack SaaS-style Project Management System with role-based workflows, real-time chat, and file submission approval — built with Java Spring Boot.
